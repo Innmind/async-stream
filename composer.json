@@ -15,7 +15,10 @@
         "issues": "http://github.com/innmind/async-stream/issues"
     },
     "require": {
-        "php": "~8.1"
+        "php": "~8.1",
+        "innmind/mantle": "dev-develop",
+        "innmind/stream": "^4.0",
+        "innmind/time-continuum": "^3.1"
     },
     "autoload": {
         "psr-4": {
