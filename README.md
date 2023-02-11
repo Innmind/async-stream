@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/innmind/async-stream/branch/develop/graph/badge.svg)](https://codecov.io/gh/innmind/async-stream)
 [![Type Coverage](https://shepherd.dev/github/innmind/async-stream/coverage.svg)](https://shepherd.dev/github/innmind/async-stream)
 
-Description
+Async implementation of [`innmind/stream`](https://packagist.org/packages/innmind/stream) to allow switching to another task when reading, writing or watching for streams.
 
 ## Installation
 
@@ -14,4 +14,45 @@ composer require innmind/async-stream
 
 ## Usage
 
-Todo
+```php
+use Innmind\Async\Stream\Streams;
+use Innmind\Stream\Streams as Synchronous;
+use Innmind\TimeContinuum\Earth\Clock;
+use Innmind\Url\Path;
+use Innmind\Mantle\{
+    Source\Predetermined,
+    Suspend,
+    Forerunner,
+};
+
+$clock = new Clock;
+$synchronous = Synchronous::fromAmbientAuthority();
+$source = Predetermined::of(
+    static function(Suspend $suspend) use ($clock, $synchronous) {
+        $stream = Streams::of($synchronous, $suspend, $clock)
+            ->readable()
+            ->open(Path::of('fixtures/first.txt'));
+
+        while (!$stream->end()) {
+            echo $stream->readLine()->match(
+                static fn($line) => $line->toString(),
+                static fn() => '',
+            );
+        }
+    },
+    static function(Suspend $suspend) use ($clock, $synchronous) {
+        $stream = Streams::of($synchronous, $suspend, $clock)
+            ->readable()
+            ->open(Path::of('fixtures/second.txt'));
+
+        while (!$stream->end()) {
+            echo $stream->readLine()->match(
+                static fn($line) => $line->toString(),
+                static fn() => '',
+            );
+        }
+    },
+);
+
+Forerunner::of($clock)(null, $source); // will print interlaced lines of both files
+```
